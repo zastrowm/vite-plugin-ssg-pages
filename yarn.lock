@@ -1039,6 +1039,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"preact@npm:^10.19.3":
+  version: 10.19.3
+  resolution: "preact@npm:10.19.3"
+  checksum: cb4fcc801f7ff302b9706eb4bb4a36cc7cd96f3231ac28baeb3ea5caf6724372222121cb487f66af44a1312bf61dbe74825ce2fda98295d2108e7443c20b0e56
+  languageName: node
+  linkType: hard
+
 "prettier@npm:^3.1.1":
   version: 3.1.1
   resolution: "prettier@npm:3.1.1"
@@ -1323,10 +1330,12 @@ __metadata:
     "@types/fs-extra": ^11.0.4
     "@types/node": 18
     fs-extra: ^11.2.0
+    preact: ^10.19.3
     prettier: ^3.1.1
     typescript: ^5.3.3
     vite: ^5.0.10
   peerDependencies:
+    preact: "*"
     vite: "*"
   languageName: unknown
   linkType: soft

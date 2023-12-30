@@ -19,9 +19,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", "site", "tools", "types/**/*", "types/*"]
 }
