@@ -2,8 +2,12 @@
   "name": "vite-plugin-ssg-pages",
   "version": "0.0.1",
   "packageManager": "yarn@3.6.0",
-  "main": "dist/index.js",
   "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./mods": "./dist/mods/index.js"
+  },
   "scripts": {
     "compile": "tsc",
     "compile:watch": "tsc --watch",
@@ -27,6 +31,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "18",
     "preact": "^10.19.3",
+    "preact-render-to-string": "^6.3.1",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.10"
@@ -35,7 +40,10 @@
     "fs-extra": "^11.2.0"
   },
   "peerDependencies": {
-    "preact": "*",
     "vite": "*"
+  },
+  "optionalDependencies": {
+    "preact": "*",
+    "preact-render-to-string": "*"
   }
 }
