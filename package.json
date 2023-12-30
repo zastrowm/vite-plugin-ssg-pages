@@ -4,6 +4,10 @@
   "packageManager": "yarn@3.6.0",
   "type": "module",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zastrowm/vite-plugin-ssg-pages.git"
+  },
   "scripts": {
     "compile": "tsc",
     "compile:watch": "tsc --watch",
