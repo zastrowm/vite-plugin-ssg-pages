@@ -1,6 +1,6 @@
 import { ModuleNode, ViteDevServer } from 'vite'
-import { StaticSiteOptions } from '../static-site-options'
-import { RendererUtils } from '../renderer-utils'
+import { StaticSiteOptions } from '../static-site-options.js'
+import { RendererUtils } from '../renderer-utils.js'
 
 export class StaticHtmlHelper extends RendererUtils {
   public readonly STYLE_REPLACEMENT_TOKEN = 'STYLES_GO_HERE'

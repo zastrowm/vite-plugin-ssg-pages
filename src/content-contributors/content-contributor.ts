@@ -1,4 +1,4 @@
-import type { CombinedMetadata } from '../module-parser'
+import type { CombinedMetadata } from '../module-parser.js'
 
 export interface ContentModule {
   contentPath: string

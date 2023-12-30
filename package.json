@@ -2,12 +2,19 @@
   "name": "vite-plugin-ssg-pages",
   "version": "0.0.1",
   "packageManager": "yarn@3.6.0",
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "compile": "tsc",
     "compile:watch": "tsc --watch",
+    "format": "prettier src/",
+    "format:fix": "prettier --write src/",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch"
   },
+  "files": [
+    "dist/**.*"
+  ],
   "prettier": {
     "trailingComma": "all",
     "tabWidth": 2,

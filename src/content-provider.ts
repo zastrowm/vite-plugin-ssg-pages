@@ -1,7 +1,7 @@
 import { ViteDevServer } from 'vite'
-import { ModuleParser } from './module-parser'
-import { StaticSiteUtils } from './static-site-options'
-import { PageContent } from './renderer'
+import { ModuleParser } from './module-parser.js'
+import { StaticSiteUtils } from './static-site-options.js'
+import { PageContent } from './renderer.js'
 
 /**
  * Responsible for listing available content and for transforming content where necessary.

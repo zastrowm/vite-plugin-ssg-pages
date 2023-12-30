@@ -5,17 +5,17 @@ import type {
   StaticEntryInput,
   StaticEntryOutput,
   VirtualModuleInput,
-} from './program-interop'
-import { jsonEncoding } from './json-encoding'
-import { ContentProvider } from './content-provider'
-import { StaticHtmlHelper } from './renderers/static-html-helper'
+} from './program-interop.js'
+import { jsonEncoding } from './json-encoding.js'
+import { ContentProvider } from './content-provider.js'
+import { StaticHtmlHelper } from './renderers/static-html-helper.js'
 import { normalizePath } from 'vite'
-import { StaticSiteOptions, StaticSiteUtils } from './static-site-options'
-import { RendererUtils } from './renderer-utils'
-import { combinedMetadataToJson } from './module-parser'
-import { StaticPageContract } from './renderers/page-context'
-import { toSortedArray } from './util/array'
-import { ModNamedOrders } from './static-site-mod'
+import { StaticSiteOptions, StaticSiteUtils } from './static-site-options.js'
+import { RendererUtils } from './renderer-utils.js'
+import { combinedMetadataToJson } from './module-parser.js'
+import { StaticPageContract } from './renderers/page-context.js'
+import { toSortedArray } from './util/array.js'
+import { ModNamedOrders } from './static-site-mod.js'
 
 export class PluginEntry implements EntryPoints {
   private readonly optionsHelper: StaticSiteUtils

@@ -1,4 +1,4 @@
-import { PluginVirtualPrefix, StaticSiteGeneratorPluginName, STYLE_REPLACEMENT_TOKEN } from './constants'
+import { PluginVirtualPrefix, StaticSiteGeneratorPluginName, STYLE_REPLACEMENT_TOKEN } from './constants.js'
 import {
   type Connect,
   createServer,
@@ -10,13 +10,13 @@ import {
   UserConfig,
   ViteDevServer,
 } from 'vite'
-import type { EntryPoints, StaticEntryOutput } from './program-interop'
+import type { EntryPoints, StaticEntryOutput } from './program-interop.js'
 import path, { resolve } from 'path'
-import { StaticPageContract } from './renderers/page-context'
+import { StaticPageContract } from './renderers/page-context.js'
 import fsExtra from 'fs-extra'
 import { readFile } from 'fs/promises'
 import { ServerResponse } from 'http'
-import { StaticSiteGeneratorPluginOptions } from './static-site-generator-plugin'
+import { StaticSiteGeneratorPluginOptions } from './static-site-generator-plugin.js'
 
 /**
  * Contains the bulk of the logic for the staticSiteGeneratorPlugin.
@@ -152,7 +152,7 @@ export class StaticSiteGeneratorPluginRunner {
             preserveEntrySignatures: 'strict',
             input: this.inputs.map((it) => it.entryPoint),
             output: {
-              entryFileNames: 'assets/[hash].mjs',
+              entryFileNames: 'assets/[hash].js',
               assetFileNames: 'assets/[hash][extname]',
             },
           },
@@ -210,7 +210,7 @@ export class StaticSiteGeneratorPluginRunner {
     for (const key in manifest) {
       const data = manifest[key]
 
-      if (data.file.endsWith('.mjs') || data.file.endsWith('.js')) {
+      if (data.file.endsWith('.js') || data.file.endsWith('.js')) {
         const existing = deletedFiles.get(data.file)
         if (existing) {
           continue

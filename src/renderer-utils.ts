@@ -1,7 +1,7 @@
 import { ViteDevServer } from 'vite'
-import { PluginVirtualPrefix } from './constants'
-import { jsonEncoding } from './json-encoding'
-import { Json, PageRenderResult } from './renderer'
+import { PluginVirtualPrefix } from './constants.js'
+import { jsonEncoding } from './json-encoding.js'
+import { Json, PageRenderResult } from './renderer.js'
 
 /**
  * Helper methods for renderers; facilitates generating and importing virtual files

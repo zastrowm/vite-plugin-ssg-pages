@@ -1,7 +1,7 @@
 import type { ResolvedConfig } from 'vite'
 import { mergeConfig, Plugin } from 'vite'
-import { StaticSiteGeneratorPluginName } from './constants'
-import { StaticSiteGeneratorPluginRunner } from './static-site-generator-plugin-runner'
+import { StaticSiteGeneratorPluginName } from './constants.js'
+import { StaticSiteGeneratorPluginRunner } from './static-site-generator-plugin-runner.js'
 
 export interface StaticSiteGeneratorPluginOptions {
   // the entry file to the plugin and the options defined for the static-site generator

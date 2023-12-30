@@ -1,5 +1,5 @@
-import { Renderer } from './renderer'
-import { ContentContributor } from './content-contributors/content-contributor'
+import { Renderer } from './renderer.js'
+import { ContentContributor } from './content-contributors/content-contributor.js'
 
 export const ModNamedOrders = {
   first: -100,

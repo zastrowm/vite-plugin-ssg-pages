@@ -1,8 +1,8 @@
-import { Renderer } from './renderer'
+import { Renderer } from './renderer.js'
 
-import { ModInitializer, StaticSiteMod } from './static-site-mod'
-import { ModuleEntry } from './module-parser'
-import { ContentContributor } from './content-contributors/content-contributor'
+import { ModInitializer, StaticSiteMod } from './static-site-mod.js'
+import { ModuleEntry } from './module-parser.js'
+import { ContentContributor } from './content-contributors/content-contributor.js'
 import { normalizePath } from 'vite'
 
 export interface StaticSiteOptions {

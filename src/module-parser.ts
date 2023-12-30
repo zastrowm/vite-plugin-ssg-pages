@@ -1,9 +1,9 @@
 import { normalizePath } from 'vite'
 import path from 'path'
-import { StaticSiteUtils } from './static-site-options'
-import { escapeRegex } from './util/regex'
-import { CachingPageDataApi, PageDataApi } from './page-data-api'
-import { ContentModule } from './content-contributors/content-contributor'
+import { StaticSiteUtils } from './static-site-options.js'
+import { escapeRegex } from './util/regex.js'
+import { CachingPageDataApi, PageDataApi } from './page-data-api.js'
+import { ContentModule } from './content-contributors/content-contributor.js'
 
 export type ModuleMetadata = Record<string, unknown>
 type CustomMetadata = {

@@ -1,7 +1,7 @@
 import { ViteDevServer } from 'vite'
-import { StaticHtmlHelper } from './renderers/static-html-helper'
-import { CombinedMetadata } from './module-parser'
-import { RendererUtils } from './renderer-utils'
+import { StaticHtmlHelper } from './renderers/static-html-helper.js'
+import { CombinedMetadata } from './module-parser.js'
+import { RendererUtils } from './renderer-utils.js'
 
 export interface PageRenderResult {
   type: string

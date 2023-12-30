@@ -1,13 +1,16 @@
-export { StaticHtmlHelper } from './renderers/static-html-helper'
+export { staticSiteGeneratorPlugin } from './static-site-generator-plugin.js'
 
-export type { StaticSiteMod } from './static-site-mod'
+export { StaticHtmlHelper } from './renderers/static-html-helper.js'
 
-export type { Renderer, PageRenderResult, PageContent, Json } from './renderer'
-export type { RendererUtils } from './renderer-utils'
-export type { ContentContributor, ContentModule } from './content-contributors/content-contributor'
-export type { PageDataApi } from './page-data-api'
-export type { CombinedMetadata } from './module-parser'
-export type { ModInitializer } from './static-site-mod'
-export { ModNamedOrders } from './static-site-mod'
+export type { StaticSiteMod } from './static-site-mod.js'
 
-export { PluginEntry } from './plugin-entry'
+export type { Renderer, PageRenderResult, PageContent, Json } from './renderer.js'
+export type { RendererUtils } from './renderer-utils.js'
+export type { ContentContributor, ContentModule } from './content-contributors/content-contributor.js'
+export type { PageDataApi } from './page-data-api.js'
+export type { CombinedMetadata } from './module-parser.js'
+export type { ModInitializer } from './static-site-mod.js'
+export type { StaticPageContext } from './renderers/page-context.js'
+export { ModNamedOrders } from './static-site-mod.js'
+
+export { PluginEntry } from './plugin-entry.js'

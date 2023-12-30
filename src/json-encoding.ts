@@ -1,4 +1,4 @@
-import { Json } from './renderer'
+import { Json } from './renderer.js'
 
 export const jsonEncoding = {
   decodeJsonForUrl(value: string): Json {
