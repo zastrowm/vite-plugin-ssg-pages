@@ -1,6 +1,6 @@
 import { PreactRenderer } from './preact-renderer.js'
 
-import { ModInitializer, StaticSiteMod } from 'vite-plugin-ssg-pages'
+import { ModInitializer, StaticSiteMod } from '../../index.js'
 
 export { HeadContent } from './head-content.js'
 export { BodyContent } from './body-content.js'

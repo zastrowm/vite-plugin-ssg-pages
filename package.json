@@ -4,10 +4,6 @@
   "packageManager": "yarn@3.6.0",
   "type": "module",
   "main": "dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./mods": "./dist/mods/index.js"
-  },
   "scripts": {
     "compile": "tsc",
     "compile:watch": "tsc --watch",

@@ -2,7 +2,7 @@ import { Fragment, h, VNode } from 'preact'
 import { HTMLStructuredDocument } from './html-structured-document.js'
 import { DocumentMetadataAggregator } from './document-metadata-aggregator.js'
 import { renderToStaticMarkup } from 'preact-render-to-string'
-import { StaticPageContext } from 'vite-plugin-ssg-pages'
+import { StaticPageContext } from '../../index.js'
 
 interface GenerateHtmlProps {
   component: VNode

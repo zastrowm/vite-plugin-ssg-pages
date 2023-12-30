@@ -121,6 +121,16 @@ export class StaticSiteGeneratorPluginRunner {
   public async transformConfig(config: UserConfig): Promise<UserConfig> {
     if (this.isDev) {
       return defineConfig({
+        optimizeDeps: {
+          exclude: [
+            // we import direct pages here, so we want to keep un-optimized
+            'vite-plugin-ssg-pages',
+            // preact & preact-render-to-string seem problematic, as we kept running into something like
+            // https://github.com/preactjs/preact/issues/1373
+            'preact-render-to-string',
+            'preact',
+          ],
+        },
         server: {
           port: 3080,
           watch: {
@@ -171,6 +181,24 @@ export class StaticSiteGeneratorPluginRunner {
     await this.writeStaticHtmlFiles(manifest)
     await this.deleteJsFiles(manifest)
     await this.deleteManifest()
+    await this.cleanupVite()
+  }
+
+  // Gets the path to the generated vite manifest file; in vite5, it changed from `${outdir}/manifest.json` to
+  // `${outdir}/.vite/manifest`, so we need to account for both
+  private async getManifestFilePath() {
+    const expectedPaths = [
+      resolve(this.config.build.outDir, '.vite/manifest.json'),
+      resolve(this.config.build.outDir, 'manifest.json'),
+    ]
+
+    for (const expectedPath of expectedPaths) {
+      if (fsExtra.exists(expectedPath)) {
+        return expectedPath
+      }
+    }
+
+    throw new Error('Could not find manifest.json; did the path change again?')
   }
 
   private async writeStaticHtmlFiles(manifest: Manifest) {
@@ -184,7 +212,8 @@ export class StaticSiteGeneratorPluginRunner {
       const manifestEntry = manifest[data.entryPoint]
 
       const fullPath = path.resolve(path.join('./dist/static', manifestEntry.file))
-      const imported = (await import('file://' + fullPath)) as StaticPageContract
+
+      const imported = (await import(/* @vite-ignore */ 'file://' + fullPath)) as StaticPageContract
       if ('generatePage' in imported) {
         const headers = this.gatherCssImports(manifest, normalizePath(data.entryPoint))
         const html = await imported.generatePage({
@@ -229,7 +258,8 @@ export class StaticSiteGeneratorPluginRunner {
   }
 
   private async readManifest(): Promise<Manifest> {
-    const content = await readFile(resolve(this.config.build.outDir, 'manifest.json'), 'utf-8')
+    const manifestPath = await this.getManifestFilePath()
+    const content = await readFile(manifestPath, 'utf-8')
     return JSON.parse(content)
   }
 
@@ -278,8 +308,16 @@ export class StaticSiteGeneratorPluginRunner {
       .join('\n')
   }
 
-  private deleteManifest = async () => {
-    await fsExtra.rm(resolve(this.config.build.outDir, 'manifest.json'))
+  private async deleteManifest() {
+    const manifestPath = await this.getManifestFilePath()
+    await fsExtra.rm(manifestPath)
+  }
+
+  private async cleanupVite() {
+    const viteFolder = resolve(this.config.build.outDir, '.vite2')
+    if (await fsExtra.exists(viteFolder)) {
+      await fsExtra.rmdir(viteFolder)
+    }
   }
 
   private async handleRequest(

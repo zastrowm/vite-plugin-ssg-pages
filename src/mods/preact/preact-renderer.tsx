@@ -3,6 +3,10 @@ import { Json, PageContent, PageRenderResult, Renderer, RendererUtils, StaticHtm
 
 const salt = 3
 
+function createImport(relativePath: string) {
+  return `vite-plugin-ssg-pages/dist/mods/preact/${relativePath}`
+}
+
 export class PreactRenderer implements Renderer {
   // static rendering
   public async generateImportForStaticPage(staticHelper: StaticHtmlHelper, page: PageContent): Promise<string> {
@@ -14,7 +18,7 @@ export class PreactRenderer implements Renderer {
     const pageSrc = props['page']
     const data = props['data']
 
-    const importGenerateHtml = `/src/mods/preact/virtual-import.generate-html.tsx`
+    const importGenerateHtml = createImport(`virtual-import.generate-html.js`)
     // language=JavaScript
     return layout
       ? `
@@ -60,7 +64,7 @@ export function generatePage(context) {
   public async renderForDevMode(helper: RendererUtils, page: PageContent): Promise<PageRenderResult> {
     const props = await this.convertPageToProps(page)
     const virtualModule = helper.generateVirtualImport(props)
-    const devModeImport = `/src/mods/preact/dev-mode-head-renderer.tsx`
+    const devModeImport = createImport(`dev-mode-head-renderer.js`)
 
     return await helper.transformHtmlResponse(
       props,
