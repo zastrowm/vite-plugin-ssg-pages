@@ -15,7 +15,7 @@ type CustomMetadata = {
 export interface ModuleEntry extends ContentModule {
   isConfig: boolean
   rootedPath: string
-  dataGetter: () => Promise<any> | null
+  dataGetter: (() => Promise<any>) | null
 }
 
 const cachedPageDataApi = new CachingPageDataApi()
@@ -42,7 +42,7 @@ export class ModuleParser {
       const contentPath = normalizePath(key).substring(this.utils.options.contentPath.length)
 
       const metadatas = this.getCombinedMetadataFor(contentPath)
-      const module = this.modules[key]
+      const module = this.modules[key] as any
       const getter = module?.['getData'] as (api: PageDataApi) => Promise<any>
 
       yield {
@@ -95,7 +95,7 @@ export class ModuleParser {
 
   private parseMetadata(path: string, module: unknown): ModuleMetadata & CustomMetadata {
     const metadata: Record<string, unknown> =
-      typeof module === 'object' && 'meta' in module && typeof module.meta === 'object'
+      module && typeof module === 'object' && 'meta' in module && typeof module.meta === 'object'
         ? (module.meta as ModuleMetadata)
         : {}
 
@@ -132,8 +132,8 @@ export class CombinedMetadata {
   }
 }
 
-export function combinedMetadataToJson(metadata: CombinedMetadata) {
-  const m = {}
+export function combinedMetadataToJson(metadata: CombinedMetadata): Record<string, unknown> {
+  const m: Record<string, unknown> = {}
   for (const module of metadata['metadata']) {
     Object.entries(module).forEach(([key, value]) => {
       if (!(key in m)) {

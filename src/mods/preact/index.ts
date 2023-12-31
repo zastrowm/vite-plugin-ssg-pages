@@ -14,7 +14,7 @@ interface PreactModeOptions {
  * Enables rendering pages using preact.
  */
 export class PreactMod implements StaticSiteMod {
-  public name: 'Preact'
+  public readonly name = 'Preact'
 
   constructor(private options: PreactModeOptions) {}
 

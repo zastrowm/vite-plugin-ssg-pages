@@ -8,7 +8,7 @@ export class DocumentMetadataAggregator {
   private mapping = new Map<string, RenderingContainer>()
   private containers: RenderingContainer[] = []
 
-  public onMarkDirty: null | (() => void)
+  public onMarkDirty: null | (() => void) = null
 
   constructor(private inStaticMode: boolean = false) {}
 
@@ -52,7 +52,9 @@ export class DocumentMetadataAggregator {
       }
     }
     for (const child of this.containers.flatMap((it) => it.props.children)) {
-      this.flatten(child, flattenedNodes)
+      if (child) {
+        this.flatten(child, flattenedNodes)
+      }
     }
 
     return flattenedNodes

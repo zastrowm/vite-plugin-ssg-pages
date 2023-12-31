@@ -44,4 +44,4 @@ export type Json = {
   [key: string]: PlainOldData
 }
 
-type PlainOldData = string | number | Json | boolean
+type PlainOldData = string | number | Json | boolean | null | undefined

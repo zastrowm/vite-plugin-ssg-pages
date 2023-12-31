@@ -39,6 +39,9 @@ export class ContentProvider {
       }
 
       const renderer = entry.metadata.get('$renderer')?.toString()
+      if (!renderer) {
+        throw new Error(`No renderer found for ${entry.contentPath}`)
+      }
 
       yield {
         source: entry.rootedPath,

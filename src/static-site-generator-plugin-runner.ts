@@ -52,7 +52,8 @@ export class StaticSiteGeneratorPluginRunner {
   }
 
   private async loadEntry(vite: ViteDevServer) {
-    return (await vite.ssrLoadModule(this.options.entry)).default as EntryPoints
+    const entry = this.options.entry ?? 'src/static-site.config.ts'
+    return (await vite.ssrLoadModule(entry)).default as EntryPoints
   }
 
   private async loadVirtualModule(id: string) {
@@ -146,7 +147,7 @@ export class StaticSiteGeneratorPluginRunner {
     this.inputs = await this.getInputs()
 
     const extraBuild =
-      config.build.outDir != null
+      config.build?.outDir != null
         ? {}
         : defineConfig({
             build: {
@@ -193,7 +194,7 @@ export class StaticSiteGeneratorPluginRunner {
     ]
 
     for (const expectedPath of expectedPaths) {
-      if (fsExtra.exists(expectedPath)) {
+      if (await fsExtra.exists(expectedPath)) {
         return expectedPath
       }
     }
@@ -325,12 +326,13 @@ export class StaticSiteGeneratorPluginRunner {
     res: ServerResponse<Connect.IncomingMessage>,
     next: Connect.NextFunction,
   ) {
+    const server = await this.startServerIfNeeded()
     const url = new URL(`https://localhost}${req.originalUrl}`)
 
     try {
-      const entry = await this.loadEntry(this.server)
+      const entry = await this.loadEntry(server)
       const { status, type, body } = await entry.handleDynamic({
-        vite: this.server,
+        vite: server,
         url: url,
       })
 
@@ -338,20 +340,20 @@ export class StaticSiteGeneratorPluginRunner {
       res.setHeader('Content-Type', type)
       res.end(body, 'utf-8')
     } catch (e) {
-      this.server.ssrFixStacktrace(e)
+      server.ssrFixStacktrace(e as Error)
       console.error(e)
       next(e)
     }
   }
 
-  configureServer(server: ViteDevServer) {
+  configureServer(server: ViteDevServer): (() => void) | undefined {
     this.server = server
     if (!this.isDev) {
       return undefined
     }
 
     return () => {
-      this.server.middlewares.use((req, res, next) => {
+      server.middlewares.use((req, res, next) => {
         this.handleRequest(req, res, next).finally()
       })
     }

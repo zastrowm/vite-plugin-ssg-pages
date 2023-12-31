@@ -1,5 +1,5 @@
 import type { ResolvedConfig } from 'vite'
-import { mergeConfig, Plugin } from 'vite'
+import { Plugin } from 'vite'
 import { StaticSiteGeneratorPluginName } from './constants.js'
 import { StaticSiteGeneratorPluginRunner } from './static-site-generator-plugin-runner.js'
 
@@ -9,11 +9,7 @@ export interface StaticSiteGeneratorPluginOptions {
 }
 
 export function staticSiteGeneratorPlugin(options = {}): Plugin {
-  const defaultOptions: StaticSiteGeneratorPluginOptions = {
-    entry: 'src/static-site.config.ts',
-  }
-
-  const plugin = new StaticSiteGeneratorPluginRunner(mergeConfig(defaultOptions, options))
+  const plugin = new StaticSiteGeneratorPluginRunner(options)
 
   return {
     name: StaticSiteGeneratorPluginName,

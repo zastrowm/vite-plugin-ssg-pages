@@ -15,7 +15,7 @@ interface PagesOptions {
  * Marks files ending in ".page." as pages, and removes ".page" from the corresponding slug.
  */
 export class PagesMod implements StaticSiteMod, ContentContributor {
-  public name: 'Pages'
+  public readonly name = 'Pages'
 
   private readonly suffixes: string[]
   private readonly extensions: Set<string>
@@ -43,7 +43,7 @@ export class PagesMod implements StaticSiteMod, ContentContributor {
     }
 
     // slug is an object with a prefix specified
-    if (typeof value === 'object' && 'prefix' in value && typeof value.prefix === 'string') {
+    if (value && typeof value === 'object' && 'prefix' in value && typeof value.prefix === 'string') {
       const parsed = path.parse(slug)
       return path.format({
         name: parsed.name,
@@ -55,7 +55,7 @@ export class PagesMod implements StaticSiteMod, ContentContributor {
     return slug
   }
 
-  public computeDefaultSlug(entry: ContentModule): string {
+  public computeDefaultSlug(entry: ContentModule): string | null {
     const parsed = path.parse(entry.contentPath)
 
     if (this.extensions.has(parsed.ext)) {

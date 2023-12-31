@@ -6,7 +6,7 @@ import { DocumentMetadataAggregator } from './document-metadata-aggregator.js'
  */
 export class RenderingContainer {
   public isActive: boolean = false
-  public props: HeadContentProps
+  public props: HeadContentProps = {}
 
   public id = generateUUID()
 

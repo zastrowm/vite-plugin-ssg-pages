@@ -21,7 +21,7 @@ export class PluginEntry implements EntryPoints {
   private readonly optionsHelper: StaticSiteUtils
 
   constructor(options: StaticSiteOptions) {
-    const ordered = toSortedArray(options.mods, (it) => it.order ?? ModNamedOrders.normal)
+    const ordered = toSortedArray(options.mods ?? [], (it) => it.order ?? ModNamedOrders.normal)
 
     this.optionsHelper = new StaticSiteUtils({
       ...options,
@@ -35,12 +35,24 @@ export class PluginEntry implements EntryPoints {
    */
   async handleVirtual({ vite, id }: VirtualModuleInput) {
     const searchParams = this.optionsHelper.getSearchParamsFromPartialUrl(id)
-    const renderer = this.optionsHelper.getRenderer(
-      searchParams.get('renderer'),
-      'This is while looking for a virtual renderer',
-    )
+    const rendererName = searchParams.get('renderer')
 
-    const json = jsonEncoding.decodeJsonForUrl(searchParams.get('props'))
+    if (!rendererName) {
+      throw new Error(`Renderer parameter not found for virtual file; this indicates a critical error; ${id}`)
+    }
+
+    const renderer = this.optionsHelper.getRenderer(rendererName, 'This is while looking for a virtual renderer')
+
+    if (!renderer.resolveVirtual) {
+      throw new Error(`Renderer ('${rendererName}') was found, but does not support 'resolveVirtual' callback`)
+    }
+
+    const props = searchParams.get('props')
+    if (!props) {
+      throw new Error(`Props parameter not found for virtual file; this indicates a critical error; ${id}`)
+    }
+
+    const json = jsonEncoding.decodeJsonForUrl(props)
     return await renderer.resolveVirtual(vite, json)
   }
 
@@ -85,6 +97,10 @@ export class PluginEntry implements EntryPoints {
       const html = await module.generatePage({
         async getStyleFragment(): Promise<string> {
           const moduleNode = staticHelper.vite.moduleGraph.urlToModuleMap.get(virtualFile)
+          if (!moduleNode) {
+            throw new Error(`Could not find module entry for: ${virtualFile}`)
+          }
+
           return await staticHelper.getStyleFragment(moduleNode)
         },
       })
