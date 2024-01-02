@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-ssg-pages",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "packageManager": "yarn@3.6.0",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,9 @@
     "typecheck:watch": "tsc --noEmit --watch"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "preact/**/*",
+    "pages/**/*"
   ],
   "prettier": {
     "trailingComma": "all",

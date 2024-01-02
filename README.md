@@ -34,3 +34,22 @@ TODO instructions
 
 TODO instructions
 
+
+## Releasing
+
+Until we have the name of the package figured out - and we want to formally release it - we're using github releases as the source of the package in other projects.
+
+### Generating an archive
+
+ - Increment the package version as necessary
+ - Run:
+   
+   ```shell
+   npm pack
+   ```
+ - Upload the package to https://github.com/zastrowm/vite-plugin-ssg-pages/releases/edit/0.0.1
+ - Reference the package via:
+
+   ```shell
+   yarn add -D vite-plugin-ssg-pages@https://github.com/zastrowm/vite-plugin-ssg-pages/releases/download/0.0.1/vite-plugin-ssg-pages-0.0.N.tgz
+   ```
