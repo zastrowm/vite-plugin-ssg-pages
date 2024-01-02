@@ -1,7 +1,10 @@
-import { ViteDevServer } from 'vite'
-import { ModuleParser } from './module-parser.js'
-import { StaticSiteUtils } from './static-site-options.js'
+import { normalizePath, ViteDevServer } from 'vite'
+import { ModuleEntry, ModuleParser } from './module-parser.js'
 import { PageContent } from './renderer.js'
+import { ModLoader } from './mod/mod-loader.js'
+import { ModSettings } from './mod-settings.js'
+
+export type ContentRetriever = () => Record<string, unknown>
 
 /**
  * Responsible for listing available content and for transforming content where necessary.
@@ -9,7 +12,9 @@ import { PageContent } from './renderer.js'
 export class ContentProvider {
   constructor(
     _: ViteDevServer,
-    private helper: StaticSiteUtils,
+    private options: ModSettings,
+    private contentRetriever: ContentRetriever,
+    private modLoader: ModLoader,
   ) {}
 
   public async getContent(path: string): Promise<PageContent | null> {
@@ -23,8 +28,8 @@ export class ContentProvider {
   }
 
   public *getAllContent(): Iterable<PageContent> {
-    const lazyContent = this.helper.options.contentRetriever()
-    const metadata = new ModuleParser(this.helper, lazyContent)
+    const lazyContent = this.contentRetriever()
+    const metadata = new ModuleParser(this.options, lazyContent)
     metadata.debugMode = true
 
     for (const entry of metadata.getAllEntries()) {
@@ -32,7 +37,7 @@ export class ContentProvider {
         continue
       }
 
-      const slug = this.helper.getPageSlug(entry)
+      const slug = this.getPageSlug(entry)
 
       if (!slug) {
         continue
@@ -52,5 +57,28 @@ export class ContentProvider {
         module: entry.module,
       }
     }
+  }
+
+  private getPageSlug(entry: ModuleEntry): string | null {
+    for (const contributor of this.modLoader.contentContributors) {
+      const slug = contributor.computeDefaultSlug?.(entry)
+
+      if (slug) {
+        return normalizePath(this.updateSlug(entry, slug))
+      }
+    }
+
+    return null
+  }
+
+  private updateSlug(entry: ModuleEntry, slug: string): string {
+    for (const contributor of this.modLoader.contentContributors) {
+      const newSlug = contributor.updateSlug?.(entry, slug)
+      if (newSlug) {
+        slug = normalizePath(newSlug)
+      }
+    }
+
+    return slug
   }
 }

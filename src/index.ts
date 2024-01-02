@@ -14,3 +14,5 @@ export type { StaticPageContext } from './renderers/page-context.js'
 export { ModNamedOrders } from './static-site-mod.js'
 
 export { PluginEntry } from './plugin-entry.js'
+export { PagesMod } from './mods/pages/index.js'
+export { IndexPageMod } from './mods/index-page/index.js'

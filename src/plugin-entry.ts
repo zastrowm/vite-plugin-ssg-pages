@@ -9,39 +9,35 @@ import type {
 import { jsonEncoding } from './json-encoding.js'
 import { ContentProvider } from './content-provider.js'
 import { StaticHtmlHelper } from './renderers/static-html-helper.js'
-import { normalizePath } from 'vite'
-import { StaticSiteOptions, StaticSiteUtils } from './static-site-options.js'
 import { RendererUtils } from './renderer-utils.js'
 import { combinedMetadataToJson } from './module-parser.js'
 import { StaticPageContract } from './renderers/page-context.js'
-import { toSortedArray } from './util/array.js'
-import { ModNamedOrders } from './static-site-mod.js'
+import { ModSettings } from './mod-settings.js'
+import { ModLoader } from './mod/mod-loader.js'
 
 export class PluginEntry implements EntryPoints {
-  private readonly optionsHelper: StaticSiteUtils
+  private readonly loader: ModLoader
 
-  constructor(options: StaticSiteOptions) {
-    const ordered = toSortedArray(options.mods ?? [], (it) => it.order ?? ModNamedOrders.normal)
-
-    this.optionsHelper = new StaticSiteUtils({
-      ...options,
-      mods: ordered,
-      contentPath: normalizePath(options.contentPath),
-    })
+  constructor(
+    private options: ModSettings,
+    private contentRetriever: () => Record<string, unknown>,
+  ) {
+    this.loader = new ModLoader(options.mods ?? [])
   }
 
   /**
    * Entry point to resolve virtual modules that renderers created.
    */
   async handleVirtual({ vite, id }: VirtualModuleInput) {
-    const searchParams = this.optionsHelper.getSearchParamsFromPartialUrl(id)
+    const url = new URL(id, 'https://localhost')
+    const searchParams = url.searchParams
     const rendererName = searchParams.get('renderer')
 
     if (!rendererName) {
       throw new Error(`Renderer parameter not found for virtual file; this indicates a critical error; ${id}`)
     }
 
-    const renderer = this.optionsHelper.getRenderer(rendererName, 'This is while looking for a virtual renderer')
+    const renderer = this.loader.getRenderer(rendererName, 'This is while looking for a virtual renderer')
 
     if (!renderer.resolveVirtual) {
       throw new Error(`Renderer ('${rendererName}') was found, but does not support 'resolveVirtual' callback`)
@@ -60,7 +56,7 @@ export class PluginEntry implements EntryPoints {
    * Entry point to serve the given file in developer mode.
    */
   async handleDynamic({ vite, url }: DevEntryInput): Promise<DevEntryOutput> {
-    const contentProvider = new ContentProvider(vite, this.optionsHelper)
+    const contentProvider = new ContentProvider(vite, this.options, this.contentRetriever, this.loader)
 
     if (url.pathname == '/$/debug') {
       const content = Array.from(contentProvider.getAllContent()).map((it) => {
@@ -86,10 +82,10 @@ export class PluginEntry implements EntryPoints {
       }
     }
 
-    const renderer = this.optionsHelper.getRenderer(page.renderer, `This is for file: ${page.source}`)
+    const renderer = this.loader.getRenderer(page.renderer, `This is for file: ${page.source}`)
 
     if (url.searchParams.get('prerender') != null) {
-      const staticHelper = new StaticHtmlHelper(vite, page.renderer, this.optionsHelper.options, true)
+      const staticHelper = new StaticHtmlHelper(vite, page.renderer, this.options, true)
       const virtualFile = await renderer.generateImportForStaticPage(staticHelper, page)
 
       const module = (await vite.ssrLoadModule(virtualFile)) as StaticPageContract
@@ -122,18 +118,18 @@ export class PluginEntry implements EntryPoints {
    * Entry point to find all files that should be generated statically; used as part of the build.
    */
   async handleStatic({ vite }: StaticEntryInput): Promise<StaticEntryOutput> {
-    const contentProvider = new ContentProvider(vite, this.optionsHelper)
+    const contentProvider = new ContentProvider(vite, this.options, this.contentRetriever, this.loader)
 
     const inputHtmlMapping: StaticEntryOutput = []
 
     for (const page of contentProvider.getAllContent()) {
-      const renderer = this.optionsHelper.getRenderer(page.renderer)
+      const renderer = this.loader.getRenderer(page.renderer)
       if (!renderer) {
         throw new Error(`No renderer with the name '${page.renderer}' found! This is for file: ${page.source}`)
       }
 
       const virtualFile = await renderer.generateImportForStaticPage(
-        new StaticHtmlHelper(vite, page.renderer, this.optionsHelper.options, false),
+        new StaticHtmlHelper(vite, page.renderer, this.options, false),
         page,
       )
 

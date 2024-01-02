@@ -1,6 +1,6 @@
 import { ModuleNode, ViteDevServer } from 'vite'
-import { StaticSiteOptions } from '../static-site-options.js'
 import { RendererUtils } from '../renderer-utils.js'
+import { ModSettings } from '../mod-settings.js'
 
 export class StaticHtmlHelper extends RendererUtils {
   public readonly STYLE_REPLACEMENT_TOKEN = 'STYLES_GO_HERE'
@@ -8,7 +8,7 @@ export class StaticHtmlHelper extends RendererUtils {
   constructor(
     vite: ViteDevServer,
     rendererName: string,
-    private options: StaticSiteOptions,
+    private options: ModSettings,
     private useInlineStyles: boolean,
   ) {
     super(vite, rendererName)

@@ -1,9 +1,9 @@
 import { normalizePath } from 'vite'
 import path from 'path'
-import { StaticSiteUtils } from './static-site-options.js'
 import { escapeRegex } from './util/regex.js'
 import { CachingPageDataApi, PageDataApi } from './page-data-api.js'
 import { ContentModule } from './content-contributors/content-contributor.js'
+import { ModSettings } from './mod-settings.js'
 
 export type ModuleMetadata = Record<string, unknown>
 type CustomMetadata = {
@@ -30,16 +30,16 @@ export class ModuleParser {
   public debugMode = false
 
   constructor(
-    private readonly utils: StaticSiteUtils,
+    private readonly options: ModSettings,
     private modules: Record<string, unknown>,
   ) {}
 
   public *getAllEntries(): Iterable<ModuleEntry> {
-    const filenameMatches = this.utils.options.configFilenames.map((it) => escapeRegex(it)).join('|')
+    const filenameMatches = this.options.configFilenames.map((it) => escapeRegex(it)).join('|')
     const configMatch = new RegExp('(?:^|/)' + filenameMatches)
 
     for (const key in this.modules) {
-      const contentPath = normalizePath(key).substring(this.utils.options.contentPath.length)
+      const contentPath = normalizePath(key).substring(this.options.contentPath.length)
 
       const metadatas = this.getCombinedMetadataFor(contentPath)
       const module = this.modules[key] as any
@@ -63,15 +63,15 @@ export class ModuleParser {
   private getCombinedMetadataFor(contentPath: string): CombinedMetadata {
     let dir = contentPath
 
-    let sources = [this.getModuleMetadata(normalizePath(path.join(this.utils.options.contentPath, contentPath)))]
+    let sources = [this.getModuleMetadata(normalizePath(path.join(this.options.contentPath, contentPath)))]
     let times = 0
 
     while (dir != '' && dir != '.' && times < 128) {
       dir = path.dirname(dir)
       times++
 
-      for (const configFile of this.utils.options.configFilenames) {
-        const configFilePath = normalizePath(path.join(this.utils.options.contentPath, dir, configFile))
+      for (const configFile of this.options.configFilenames) {
+        const configFilePath = normalizePath(path.join(this.options.contentPath, dir, configFile))
         if (this.modules[configFilePath]) {
           const metadata = this.getModuleMetadata(configFilePath)
           sources.push(metadata)

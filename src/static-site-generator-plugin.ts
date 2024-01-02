@@ -1,18 +1,19 @@
 import type { ResolvedConfig } from 'vite'
 import { Plugin } from 'vite'
 import { StaticSiteGeneratorPluginName } from './constants.js'
-import { StaticSiteGeneratorPluginRunner } from './static-site-generator-plugin-runner.js'
+import {
+  StaticSiteGeneratorPluginOptions,
+  StaticSiteGeneratorPluginRunner,
+} from './static-site-generator-plugin-runner.js'
 
-export interface StaticSiteGeneratorPluginOptions {
-  // the entry file to the plugin and the options defined for the static-site generator
-  entry?: string
-}
-
-export function staticSiteGeneratorPlugin(options = {}): Plugin {
+export function staticSiteGeneratorPlugin(
+  options: StaticSiteGeneratorPluginOptions,
+): Plugin & { __passthrough__: StaticSiteGeneratorPluginRunner } {
   const plugin = new StaticSiteGeneratorPluginRunner(options)
 
   return {
     name: StaticSiteGeneratorPluginName,
+    __passthrough__: plugin,
     apply(_, env) {
       const isDev = env.command == 'serve'
       plugin['isDev'] = isDev

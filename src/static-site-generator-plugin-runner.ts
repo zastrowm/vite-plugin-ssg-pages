@@ -1,4 +1,9 @@
-import { PluginVirtualPrefix, StaticSiteGeneratorPluginName, STYLE_REPLACEMENT_TOKEN } from './constants.js'
+import {
+  PluginVirtualContentName,
+  PluginVirtualPrefix,
+  StaticSiteGeneratorPluginName,
+  STYLE_REPLACEMENT_TOKEN,
+} from './constants.js'
 import {
   type Connect,
   createServer,
@@ -16,7 +21,20 @@ import { StaticPageContract } from './renderers/page-context.js'
 import fsExtra from 'fs-extra'
 import { readFile } from 'fs/promises'
 import { ServerResponse } from 'http'
-import { StaticSiteGeneratorPluginOptions } from './static-site-generator-plugin.js'
+import { StaticSiteMod } from './static-site-mod.js'
+import { ModSettings } from './mod-settings.js'
+
+export interface StaticSiteGeneratorPluginOptions {
+  readonly content: {
+    directory: string
+    glob: string
+  }
+
+  readonly configFilenames: string[]
+  readonly styleExtensions: string[]
+
+  readonly mods?: StaticSiteMod[]
+}
 
 /**
  * Contains the bulk of the logic for the staticSiteGeneratorPlugin.
@@ -33,7 +51,11 @@ export class StaticSiteGeneratorPluginRunner {
 
   private isDev: boolean = false
 
-  constructor(private options: StaticSiteGeneratorPluginOptions) {}
+  public readonly options: ModSettings
+
+  constructor(options: StaticSiteGeneratorPluginOptions) {
+    this.options = new ModSettings(options)
+  }
 
   public resolveId(id: string) {
     if (id.startsWith(PluginVirtualPrefix)) {
@@ -52,11 +74,20 @@ export class StaticSiteGeneratorPluginRunner {
   }
 
   private async loadEntry(vite: ViteDevServer) {
-    const entry = this.options.entry ?? 'src/static-site.config.ts'
-    return (await vite.ssrLoadModule(entry)).default as EntryPoints
+    const entrypoint = await vite.ssrLoadModule(`${StaticSiteGeneratorPluginName}/dist/_bootstrapper.js`)
+    return (await entrypoint.initialize(vite)) as EntryPoints
   }
 
   private async loadVirtualModule(id: string) {
+    if (id == '\0' + PluginVirtualContentName) {
+      // language=JavaScript
+      return `
+export function getAll() {
+  return import.meta.glob(${JSON.stringify(this.options.contentGlob)}, { eager: true })
+}
+      `
+    }
+
     const vite = this.server!
     const entry = await this.loadEntry(vite)
     return entry.handleVirtual({

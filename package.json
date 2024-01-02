@@ -13,6 +13,7 @@
     "compile:watch": "tsc --watch",
     "format": "prettier src/",
     "format:fix": "prettier --write src/",
+    "test": "vitest",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch"
   },
@@ -34,7 +35,8 @@
     "preact-render-to-string": "^6.3.1",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3",
-    "vite": "^5.0.10"
+    "vite": "^5.0.10",
+    "vitest": "^1.1.0"
   },
   "dependencies": {
     "fs-extra": "^11.2.0"

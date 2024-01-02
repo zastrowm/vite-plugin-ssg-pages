@@ -1,5 +1,5 @@
 import { ViteDevServer } from 'vite'
-import { PluginVirtualPrefix } from './constants.js'
+import { PluginGeneratedPagePrefix } from './constants.js'
 import { jsonEncoding } from './json-encoding.js'
 import { Json, PageRenderResult } from './renderer.js'
 
@@ -36,7 +36,7 @@ export class RendererUtils {
    * Generates a virtual import for the given props; use this when generating virtual files to be rendered by a mod.
    */
   public generateVirtualImport(props: Json): string {
-    return `${PluginVirtualPrefix}${this.getPropsAsSearch(props)}`
+    return `${PluginGeneratedPagePrefix}${this.getPropsAsSearch(props)}`
   }
 
   private getPropsAsSearch(props: Json) {
