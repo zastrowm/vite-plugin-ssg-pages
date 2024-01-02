@@ -10,10 +10,10 @@ import { jsonEncoding } from './json-encoding.js'
 import { ContentProvider } from './content-provider.js'
 import { StaticHtmlHelper } from './renderers/static-html-helper.js'
 import { RendererUtils } from './renderer-utils.js'
-import { combinedMetadataToJson } from './module-parser.js'
 import { StaticPageContract } from './renderers/page-context.js'
 import { ModSettings } from './mod-settings.js'
 import { ModLoader } from './mod/mod-loader.js'
+import { generateDebugViewHtml } from './debug/debug-view-html.js'
 
 export class PluginEntry implements EntryPoints {
   private readonly loader: ModLoader
@@ -59,16 +59,11 @@ export class PluginEntry implements EntryPoints {
     const contentProvider = new ContentProvider(vite, this.options, this.contentRetriever, this.loader)
 
     if (url.pathname == '/$/debug') {
-      const content = Array.from(contentProvider.getAllContent()).map((it) => {
-        return {
-          ...it,
-          metadata: combinedMetadataToJson(it.metadata),
-        }
-      })
-
-      return renderJson({
-        content,
-      })
+      return {
+        status: 200,
+        type: 'text/html',
+        body: await generateDebugViewHtml(vite, contentProvider),
+      }
     }
 
     const desiredSlug = url.pathname.substring(1)
@@ -140,13 +135,5 @@ export class PluginEntry implements EntryPoints {
     }
 
     return inputHtmlMapping
-  }
-}
-
-export function renderJson(data: any): DevEntryOutput {
-  return {
-    status: 200,
-    type: 'text/plain',
-    body: JSON.stringify(data, null, 2),
   }
 }

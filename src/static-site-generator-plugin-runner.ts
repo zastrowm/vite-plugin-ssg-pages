@@ -154,6 +154,7 @@ export function getAll() {
     if (this.isDev) {
       return defineConfig({
         optimizeDeps: {
+          // disabled: true,
           exclude: [
             // we import direct pages here, so we want to keep un-optimized
             'vite-plugin-ssg-pages',

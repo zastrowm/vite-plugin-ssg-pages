@@ -1,11 +1,8 @@
 import { ViteDevServer } from 'vite'
 import { Json, PageContent, PageRenderResult, Renderer, RendererUtils, StaticHtmlHelper } from '../../index.js'
+import { filePaths } from '../../file-paths.js'
 
 const salt = 3
-
-function createImport(relativePath: string) {
-  return `vite-plugin-ssg-pages/dist/mods/preact/${relativePath}`
-}
 
 export class PreactRenderer implements Renderer {
   // static rendering
@@ -18,12 +15,11 @@ export class PreactRenderer implements Renderer {
     const pageSrc = props['page']
     const data = props['data']
 
-    const importGenerateHtml = createImport(`virtual-import.generate-html.js`)
     // language=JavaScript
     return layout
       ? `
 import { h } from 'preact'
-import { generateHtml } from ${JSON.stringify(importGenerateHtml)}
+import { generateHtml } from ${filePaths.preact.generateHtml.runtimePathQuoted}
 import { meta } from ${JSON.stringify(layout)}
 import TheComponent from ${JSON.stringify(pageSrc)}
 
@@ -42,7 +38,7 @@ export function generatePage(context) {
 }`
       : `
 import { h } from 'preact'
-import { generateHtml } from ${JSON.stringify(importGenerateHtml)}
+import { generateHtml } from ${filePaths.preact.generateHtml.runtimePathQuoted}
 import TheComponent from ${JSON.stringify(pageSrc)}
 
 const data = ${data !== undefined ? JSON.stringify(data) : 'undefined'}
@@ -64,7 +60,6 @@ export function generatePage(context) {
   public async renderForDevMode(helper: RendererUtils, page: PageContent): Promise<PageRenderResult> {
     const props = await this.convertPageToProps(page)
     const virtualModule = helper.generateVirtualImport(props)
-    const devModeImport = createImport(`dev-mode-head-renderer.js`)
 
     return await helper.transformHtmlResponse(
       props,
@@ -72,7 +67,7 @@ export function generatePage(context) {
 <!DOCTYPE html>
 <head>
 <script type='module'>
-import { renderInDevMode } from '${devModeImport}'
+import { renderInDevMode } from ${filePaths.preact.devModeRenderer.runtimePathQuoted}
 import { getElement } from '${virtualModule}'
 
 renderInDevMode(getElement)
