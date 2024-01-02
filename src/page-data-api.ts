@@ -1,6 +1,4 @@
-export interface PageDataApi {
-  fetchJson<T = any>(url: string): Promise<T>
-}
+import { PageDataApi } from './pages/index.js'
 
 /**
  * Implementation of PageDataApi that automatically caches json requests to avoid making excessive # of network calls
