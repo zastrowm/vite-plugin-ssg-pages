@@ -1,5 +1,5 @@
 import { Renderer } from './renderer.js'
-import { ContentContributor } from './content-contributors/content-contributor.js'
+import type { CombinedMetadata } from './module-parser.js'
 
 export const ModNamedOrders = {
   first: -100,
@@ -19,7 +19,24 @@ export interface StaticSiteMod {
   initialize(loader: ModInitializer): void
 }
 
+export interface PageModule {
+  contentPath: string
+  metadata: CombinedMetadata
+  pluginMetadata: Record<string, unknown>
+  module: any
+}
+
 export interface ModInitializer {
   addRenderer(name: string, renderer: Renderer): void
-  addContentProvider(contributor: ContentContributor): void
+
+  // Calculates the default slug for the given content-module or null if this should not be marked a page per
+  // this contributor
+  readonly generatePageSlug: HookCallback<(module: PageModule) => string | null>
+
+  // Allows changing the slug of the given entry
+  readonly updatePageSlug: HookCallback<(module: PageModule, currentSlug: string) => string>
+}
+
+export interface HookCallback<T> {
+  add(item: T, order?: number): void
 }

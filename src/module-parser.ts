@@ -2,17 +2,16 @@ import { normalizePath } from 'vite'
 import path from 'path'
 import { escapeRegex } from './util/regex.js'
 import { CachingPageDataApi, PageDataApi } from './page-data-api.js'
-import { ContentModule } from './content-contributors/content-contributor.js'
 import { ModSettings } from './mod-settings.js'
+import { PageModule } from './static-site-mod.js'
 
 export type ModuleMetadata = Record<string, unknown>
 type CustomMetadata = {
-  $renderer?: string
   $metadata_sources?: string[]
   $original_path: string
 }
 
-export interface ModuleEntry extends ContentModule {
+export interface ModuleEntry extends PageModule {
   isConfig: boolean
   rootedPath: string
   dataGetter: (() => Promise<any>) | null
@@ -44,6 +43,9 @@ export class ModuleParser {
       const metadatas = this.getCombinedMetadataFor(contentPath)
       const module = this.modules[key] as any
       const getter = module?.['getData'] as (api: PageDataApi) => Promise<any>
+
+      // const moduleGetter = metadatas.describe<DefaultPageMetadataConfig['getData']>('getMetadata')
+      // const getter = moduleGetter?.value
 
       yield {
         isConfig: key.match(configMatch) !== null,

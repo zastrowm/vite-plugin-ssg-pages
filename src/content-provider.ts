@@ -43,7 +43,7 @@ export class ContentProvider {
         continue
       }
 
-      const renderer = entry.metadata.get('$renderer')?.toString()
+      const renderer = entry.metadata.get('renderer')?.toString()
       if (!renderer) {
         throw new Error(`No renderer found for ${entry.contentPath}`)
       }
@@ -60,8 +60,8 @@ export class ContentProvider {
   }
 
   private getPageSlug(entry: ModuleEntry): string | null {
-    for (const contributor of this.modLoader.contentContributors) {
-      const slug = contributor.computeDefaultSlug?.(entry)
+    for (const contributor of this.modLoader.generatePageSlug) {
+      const slug = contributor(entry)
 
       if (slug) {
         return normalizePath(this.updateSlug(entry, slug))
@@ -72,8 +72,8 @@ export class ContentProvider {
   }
 
   private updateSlug(entry: ModuleEntry, slug: string): string {
-    for (const contributor of this.modLoader.contentContributors) {
-      const newSlug = contributor.updateSlug?.(entry, slug)
+    for (const contributor of this.modLoader.updatePageSlug) {
+      const newSlug = contributor(entry, slug)
       if (newSlug) {
         slug = normalizePath(newSlug)
       }
