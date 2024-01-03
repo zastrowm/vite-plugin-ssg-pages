@@ -43,6 +43,8 @@ export class ContentProvider {
         continue
       }
 
+      this.postProcess(entry)
+
       const renderer = entry.metadata.get('renderer')?.toString()
       if (!renderer) {
         throw new Error(`No renderer found for ${entry.contentPath}`)
@@ -56,6 +58,12 @@ export class ContentProvider {
         metadata: entry.metadata,
         module: entry.module,
       }
+    }
+  }
+
+  private postProcess(entry: ModuleEntry) {
+    for (const callback of this.modLoader.modifyPage) {
+      callback(entry)
     }
   }
 

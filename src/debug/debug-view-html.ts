@@ -1,6 +1,5 @@
 import { ContentProvider } from '../content-provider.js'
 import { filePaths } from '../file-paths.js'
-import { combinedMetadataToJson } from '../module-parser.js'
 import { ViteDevServer } from 'vite'
 
 /**
@@ -10,12 +9,12 @@ export async function generateDebugViewHtml(vite: ViteDevServer, contentProvider
   const content = Array.from(contentProvider.getAllContent()).map((it) => {
     return {
       ...it,
-      metadata: combinedMetadataToJson(it.metadata),
+      metadata: it.metadata.asJson(true),
     }
   })
 
   return await vite.transformIndexHtml(
-    '/$/debug?debug=true&salt=1',
+    '/$/debug?debug=true&salt=2',
     `
 <html lang="en">
     <head>

@@ -4,22 +4,37 @@ export function debugRenderContents() {
   const contents = JSON.parse(document.getElementById('debug-json')!.textContent!)
 
   const element = (
-    <table>
-      <tr>
-        <th>Page</th>
-        <th>Renderer</th>
-        <th>File path</th>
-      </tr>
-      {contents.map((it: any) => (
+    <div>
+      <h2>Pages</h2>
+      <table>
         <tr>
-          <td>
-            <a href={`/${it.slug}`}>{it.slug}</a>
-          </td>
-          <td>{it.renderer}</td>
-          <td>{it.metadata.$original_path}</td>
+          <th>Page</th>
+          <th>Renderer</th>
+          <th>File path</th>
+          <td>Metadata!</td>
         </tr>
-      ))}
-    </table>
+        {contents.map((it: any) => (
+          <tr>
+            <td>
+              <a href={`/${it.slug}`}>{it.slug}</a>
+            </td>
+            <td>{it.renderer}</td>
+            <td>{it.metadata.$original_path}</td>
+            <td>
+              <details>
+                <summary>Expand</summary>
+                <pre>{JSON.stringify(it.metadata, null, 2)}</pre>
+              </details>
+            </td>
+          </tr>
+        ))}
+      </table>
+      <h2>Raw content JSON</h2>
+      <details>
+        <summary>Expand</summary>
+        <pre>{JSON.stringify(contents, null, 2)}</pre>
+      </details>
+    </div>
   )
 
   document.body.append(element)

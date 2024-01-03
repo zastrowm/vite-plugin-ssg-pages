@@ -18,6 +18,7 @@ export class ModLoader implements ModInitializer {
 
   public readonly generatePageSlug = new CallbackList<(module: PageModule) => string | null>()
   public readonly updatePageSlug = new CallbackList<(module: PageModule, currentSlug: string) => string>()
+  public readonly modifyPage = new CallbackList<(module: PageModule) => void>()
 
   public addRenderer(name: string, renderer: Renderer): void {
     this.renderers.set(name, renderer)
@@ -55,18 +56,5 @@ export class CallbackList<T extends Function> implements HookCallback<T> {
   public add(item: T, order: number = ModNamedOrders.normal) {
     this.items.push({ value: item, order: order })
     this.didChange = true
-  }
-
-  public forEach(callback: (item: T) => boolean) {
-    if (this.didChange) {
-      this.items = toSortedArray(this.items, (it) => it.order)
-      this.didChange = false
-    }
-
-    for (const item of this.items) {
-      if (!callback(item.value)) {
-        return
-      }
-    }
   }
 }

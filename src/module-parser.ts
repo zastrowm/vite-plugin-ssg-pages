@@ -5,6 +5,7 @@ import { CachingPageDataApi } from './page-data-api.js'
 import { ModSettings } from './mod-settings.js'
 import { PageModule } from './static-site-mod.js'
 import { DefaultPageMetadataConfig } from './pages/index.js'
+import { Json } from './renderer.js'
 
 export type ModuleMetadata = Record<string, unknown>
 type CustomMetadata = {
@@ -113,10 +114,20 @@ export interface DescribedProperty<T> {
 }
 
 export class CombinedMetadata {
+  private modProperties: Record<string, unknown> | null = null
+
   constructor(private metadata: ModuleMetadata[]) {}
 
   public get<T = unknown>(key: string): T | undefined {
     return this.describe<T>(key)?.value
+  }
+
+  public add<T>(key: string, value: T) {
+    if (this.modProperties == null) {
+      this.modProperties = {}
+    }
+
+    this.modProperties[key] = value
   }
 
   public describe<T>(key: string): DescribedProperty<T> | undefined {
@@ -132,20 +143,35 @@ export class CombinedMetadata {
 
     return undefined
   }
+
+  public asJson(includePlaceholders: boolean = false): Json {
+    const m: Record<string, unknown> = {}
+    for (const module of this.metadata) {
+      append(m, module, includePlaceholders)
+    }
+
+    const modProperties = this.modProperties
+
+    if (modProperties) {
+      append(m, modProperties, includePlaceholders)
+    }
+
+    return m as Json
+  }
 }
 
-export function combinedMetadataToJson(metadata: CombinedMetadata): Record<string, unknown> {
-  const m: Record<string, unknown> = {}
-  for (const module of metadata['metadata']) {
-    Object.entries(module).forEach(([key, value]) => {
-      if (!(key in m)) {
-        m[key] = value
-        if (typeof value == 'function') {
-          m[key] = '$$FUNCTION$$'
+function append(data: Record<string, unknown>, values: Record<string, unknown>, includePlaceholders: boolean) {
+  Object.entries(values).forEach(([key, value]) => {
+    if (!(key in data)) {
+      if (typeof value == 'function') {
+        if (includePlaceholders) {
+          data[key] = '$$FUNCTION$$'
+        } else {
+          data[key] = null
         }
+      } else {
+        data[key] = value
       }
-    })
-  }
-
-  return m
+    }
+  })
 }

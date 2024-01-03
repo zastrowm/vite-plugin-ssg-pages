@@ -16,6 +16,9 @@ interface PagesOptions {
   // provided, then a file of the form `blog/example.md` would end up having a slug of `blog/example`
   pageExtensions?: string[]
 
+  // A list of named properties to copy over from a module into it's metadata
+  copyModuleProperties?: string[] | Record<string, string>
+
   // If true, automatically converts parenthesized names into the corresponding parent slug; for example
   // `some/sub/(child)` would be converted to `/some/sub`.
   enableIndexSlugs: boolean
@@ -30,11 +33,16 @@ export class PagesMod implements StaticSiteMod {
   private readonly suffixes: string[]
   private readonly extensions: Set<string>
   private readonly enableIndexSlugs: boolean
+  private readonly moduleProperties: Array<[from: string, to: string]>
 
   constructor(options: PagesOptions) {
     this.suffixes = options.pageSuffixes.map((it) => `.${it}`)
     this.extensions = new Set(options.pageExtensions?.map((it) => `.${it}`) ?? [])
     this.enableIndexSlugs = options.enableIndexSlugs
+
+    const properties = options.copyModuleProperties ?? []
+
+    this.moduleProperties = Array.isArray(properties) ? properties.map((it) => [it, it]) : Object.entries(properties)
   }
 
   public initialize(loader: ModInitializer): void {
@@ -43,6 +51,10 @@ export class PagesMod implements StaticSiteMod {
 
     if (this.enableIndexSlugs) {
       loader.updatePageSlug.add((...args) => this.updateIndexSlug(...args), ModNamedOrders.post)
+    }
+
+    if (this.moduleProperties) {
+      loader.modifyPage.add((...args) => this.copyProperties(...args))
     }
   }
 
@@ -126,6 +138,17 @@ export class PagesMod implements StaticSiteMod {
       })
     } else {
       return currentSlug
+    }
+  }
+
+  private copyProperties(content: PageModule) {
+    for (const entry of this.moduleProperties) {
+      const [from, to] = Array.isArray(entry) ? entry : [entry, entry]
+
+      if (from in content.module) {
+        const value = content.module[from]
+        content.metadata.add(to, value)
+      }
     }
   }
 }

@@ -35,6 +35,10 @@ export interface ModInitializer {
 
   // Allows changing the slug of the given entry
   readonly updatePageSlug: HookCallback<(module: PageModule, currentSlug: string) => string>
+
+  // Invoked when content has been generated but not yet rendered; useful for contributing additional data to
+  // the content before rendering
+  readonly modifyPage: HookCallback<(module: PageModule) => void>
 }
 
 export interface HookCallback<T> {
