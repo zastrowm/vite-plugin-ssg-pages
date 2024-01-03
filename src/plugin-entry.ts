@@ -68,7 +68,10 @@ export class PluginEntry implements EntryPoints {
 
     const desiredSlug = url.pathname.substring(1)
 
-    const page = await contentProvider.getContent(desiredSlug)
+    const page =
+      (await contentProvider.getContent(desiredSlug)) ??
+      (desiredSlug == '' ? await contentProvider.getContent('index') : null)
+
     if (page == null) {
       return {
         type: 'text/plain',
