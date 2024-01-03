@@ -14,6 +14,7 @@ export class PreactRenderer implements Renderer {
     const layout = props['layout']
     const pageSrc = props['page']
     const data = props['data']
+    const metadata = props['metadata']
 
     // language=JavaScript
     return layout
@@ -24,9 +25,10 @@ import { meta } from ${JSON.stringify(layout)}
 import TheComponent from ${JSON.stringify(pageSrc)}
 
 const data = ${data !== undefined ? JSON.stringify(data) : 'undefined'}
+const metadata = ${JSON.stringify(metadata)}
 
 export function getElement() {
-  return h(meta.layout, { data }, h(TheComponent, { data }))
+  return h(meta.layout, { data, metadata }, h(TheComponent, { data, metadata }))
 }
 
 export function generatePage(context) {
@@ -42,9 +44,10 @@ import { generateHtml } from ${filePaths.preact.generateHtml.runtimePathQuoted}
 import TheComponent from ${JSON.stringify(pageSrc)}
 
 const data = ${data !== undefined ? JSON.stringify(data) : 'undefined'}
+const metadata = ${JSON.stringify(metadata)}
 
 export function getElement() {
-  return h(TheComponent, { data })
+  return h(TheComponent, { data, metadata })
 }
 
 export function generatePage(context) {
@@ -82,6 +85,7 @@ renderInDevMode(getElement)
     const data = typeof page.dataGetter == 'function' ? await page.dataGetter() : undefined
 
     return {
+      metadata: page.metadata.asJson(),
       page: page.source,
       layout: layoutProperty?.value ? page.metadata.describe('layout')?.source : undefined,
       salt: salt,
