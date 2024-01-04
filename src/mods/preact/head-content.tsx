@@ -13,15 +13,24 @@ export interface HeadContentProps {
  * which render simple elements, without the use of hooks
  */
 export function HeadContent(props: HeadContentProps) {
-  const context = useContext(HTMLDocumentContext)
-  const container = useMemo(() => context.createContainer(), [context])
+  try {
+    const context = useContext(HTMLDocumentContext)
+    const container = useMemo(() => context.createContainer(), [context])
 
-  container.update(props)
+    container.update(props)
 
-  useEffect(() => {
-    container.markRendered()
-    return () => container.remove()
-  }, [container])
+    useEffect(() => {
+      container.markRendered()
+      return () => container.remove()
+    }, [container])
+  } catch (err) {
+    // during hot-reload, we sometimes get exceptions
+    if (import.meta.hot) {
+      console.error('Error in HeadContent (expected in hot-reloads): ', err)
+    } else {
+      throw err
+    }
+  }
 
   return <Fragment></Fragment>
 }

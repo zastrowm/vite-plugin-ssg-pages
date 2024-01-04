@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-ssg-pages",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "packageManager": "yarn@3.6.0",
   "type": "module",
   "main": "dist/index.js",
