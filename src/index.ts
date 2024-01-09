@@ -12,6 +12,15 @@ export type { StaticPageContext } from './renderers/page-context.js'
 export type { PageModule } from './static-site-mod.js'
 
 export { PluginEntry } from './plugin-entry.js'
-export { PagesMod } from './mods/pages/pages-mod.js'
-export type { MetaSlugConfig } from './mods/pages/pages-mod.js'
 export { ModNamedOrders } from './static-site-mod.js'
+
+// Mod1
+export { PagesMod } from './mods/pages/pages-mod.js'
+
+// Mod2
+export { CustomizedSlugMod } from './mods/metadata-slug-mod.js'
+export type { MetaSlugConfig } from './mods/metadata-slug-mod.js'
+
+// Mod3
+export type { ModuleDataModOptions } from './mods/module-data-mod.js'
+export { ModuleDataMod } from './mods/module-data-mod.js'

@@ -1,8 +1,10 @@
-import { normalizePath, ViteDevServer } from 'vite'
+import { ViteDevServer } from 'vite'
 import { ModuleEntry, ModuleParser } from './module-parser.js'
 import { PageContent } from './renderer.js'
-import { ModLoader } from './mod/mod-loader.js'
+import { CallbackList, ContentType, ModLoader } from './mod/mod-loader.js'
 import { ModSettings } from './mod-settings.js'
+import path from 'path'
+import { PageModule } from './static-site-mod.js'
 
 export type ContentRetriever = () => Record<string, unknown>
 
@@ -37,17 +39,34 @@ export class ContentProvider {
         continue
       }
 
-      const slug = this.getPageSlug(entry)
-
-      if (!slug) {
+      const type = this.getContentType(entry)
+      if (type == null) {
         continue
       }
 
-      this.postProcess(entry)
+      const parsed = path.parse(entry.contentPath)
+
+      const defaultSlug = path.format({
+        name: parsed.name,
+        root: parsed.root,
+        dir: parsed.dir,
+      })
+
+      entry.contentData.set('slug', defaultSlug)
+
+      this.invokeAll(entry, this.modLoader.contributeData)
+      this.invokeAll(entry, this.modLoader.preprocess)
 
       const renderer = entry.metadata.get('renderer')?.toString()
       if (!renderer) {
         throw new Error(`No renderer found for ${entry.contentPath}`)
+      }
+
+      this.invokeAll(entry, this.modLoader.postprocess)
+      const slug = entry.contentData.get('slug') as string
+
+      if (!slug) {
+        continue
       }
 
       yield {
@@ -61,32 +80,20 @@ export class ContentProvider {
     }
   }
 
-  private postProcess(entry: ModuleEntry) {
-    for (const callback of this.modLoader.modifyPage) {
-      callback(entry)
-    }
-  }
-
-  private getPageSlug(entry: ModuleEntry): string | null {
-    for (const contributor of this.modLoader.generatePageSlug) {
-      const slug = contributor(entry)
-
-      if (slug) {
-        return normalizePath(this.updateSlug(entry, slug))
+  private getContentType(entry: ModuleEntry): ContentType {
+    for (const callback of this.modLoader.determineContentType) {
+      const type = callback(entry)
+      if (type) {
+        return type
       }
     }
 
     return null
   }
 
-  private updateSlug(entry: ModuleEntry, slug: string): string {
-    for (const contributor of this.modLoader.updatePageSlug) {
-      const newSlug = contributor(entry, slug)
-      if (newSlug) {
-        slug = normalizePath(newSlug)
-      }
+  private invokeAll(entry: ModuleEntry, list: CallbackList<(module: PageModule) => void>) {
+    for (const callback of list) {
+      callback(entry)
     }
-
-    return slug
   }
 }

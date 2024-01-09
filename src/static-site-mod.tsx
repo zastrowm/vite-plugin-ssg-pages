@@ -1,5 +1,6 @@
 import { Renderer } from './renderer.js'
 import type { CombinedMetadata } from './module-parser.js'
+import { ContentType } from './mod/mod-loader.js'
 
 export const ModNamedOrders = {
   first: -100,
@@ -22,25 +23,33 @@ export interface StaticSiteMod {
 export interface PageModule {
   contentPath: string
   metadata: CombinedMetadata
-  pluginMetadata: Record<string, unknown>
+  contentData: ContentData
   module: any
 }
 
 export interface ModInitializer {
   addRenderer(name: string, renderer: Renderer): void
 
-  // Calculates the default slug for the given content-module or null if this should not be marked a page per
-  // this contributor
-  readonly generatePageSlug: HookCallback<(module: PageModule) => string | null>
+  // Determines the type of content a module represents
+  readonly determineContentType: HookCallback<(module: PageModule) => ContentType>
 
-  // Allows changing the slug of the given entry
-  readonly updatePageSlug: HookCallback<(module: PageModule, currentSlug: string) => string>
+  // Invoked when content has been generated and gives plugins the opportunity to contribute
+  // or add data
+  readonly contributeData: HookCallback<(module: PageModule) => void>
 
-  // Invoked when content has been generated but not yet rendered; useful for contributing additional data to
+  // Invoked before the renderer is determined; useful for contributing additional data to
   // the content before rendering
-  readonly modifyPage: HookCallback<(module: PageModule) => void>
+  readonly preprocess: HookCallback<(module: PageModule) => void>
+
+  // Invoked after the renderer has been determined & after preprocessing
+  readonly postprocess: HookCallback<(module: PageModule) => void>
 }
 
 export interface HookCallback<T> {
   add(item: T, order?: number): void
+}
+
+export interface ContentData {
+  get(name: string): unknown | null
+  set(name: string, value: unknown): void
 }

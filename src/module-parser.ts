@@ -3,7 +3,7 @@ import path from 'path'
 import { escapeRegex } from './util/regex.js'
 import { CachingPageDataApi } from './page-data-api.js'
 import { ModSettings } from './mod-settings.js'
-import { PageModule } from './static-site-mod.js'
+import { ContentData, PageModule } from './static-site-mod.js'
 import { DefaultPageMetadataConfig } from './pages/index.js'
 import { Json } from './renderer.js'
 
@@ -54,7 +54,7 @@ export class ModuleParser {
         contentPath: contentPath,
         dataGetter: typeof getter == 'function' ? () => getter(cachedPageDataApi) : null,
         metadata: metadatas,
-        pluginMetadata: {},
+        contentData: new PageContentData(),
         module: module,
       }
     }
@@ -111,6 +111,7 @@ export interface DescribedProperty<T> {
   name: string
   value: T
   source: string
+  priority: number
 }
 
 export class CombinedMetadata {
@@ -131,17 +132,35 @@ export class CombinedMetadata {
   }
 
   public describe<T>(key: string): DescribedProperty<T> | undefined {
-    for (const item of this.metadata) {
-      if (key in item) {
-        return {
-          value: item[key] as T,
-          source: (item as CustomMetadata).$original_path,
-          name: key,
-        }
-      }
+    // noinspection LoopStatementThatDoesntLoopJS
+    for (const property of this.describeAll<T>(key)) {
+      return property
     }
 
     return undefined
+  }
+
+  public *describeAll<T>(key: string): Iterable<DescribedProperty<T>> {
+    if (this.modProperties && key in this.modProperties) {
+      yield {
+        value: this.modProperties[key] as T,
+        source: 'AMod',
+        name: key,
+        priority: 0,
+      }
+    }
+
+    for (let i = 0; i < this.metadata.length; i++) {
+      const item = this.metadata[i]
+      if (key in item) {
+        yield {
+          value: item[key] as T,
+          source: (item as CustomMetadata).$original_path,
+          name: key,
+          priority: i + 1,
+        }
+      }
+    }
   }
 
   public asJson(includePlaceholders: boolean = false): Json {
@@ -174,4 +193,20 @@ function append(data: Record<string, unknown>, values: Record<string, unknown>, 
       }
     }
   })
+}
+
+export class PageContentData implements ContentData {
+  private data = new Map<string, unknown>()
+
+  public get(name: string): unknown {
+    return this.data.get(name)
+  }
+
+  public set(name: string, value: unknown): void {
+    if (name == 'slug' && typeof value == 'string') {
+      value = normalizePath(value)
+    }
+
+    this.data.set(name, value)
+  }
 }

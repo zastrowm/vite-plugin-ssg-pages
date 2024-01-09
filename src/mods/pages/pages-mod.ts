@@ -1,11 +1,6 @@
-import { ModInitializer, ModNamedOrders, PageModule, StaticSiteMod } from '../../index.js'
+import { ModInitializer, PageModule, StaticSiteMod } from '../../index.js'
+import { ContentType } from '../../mod/mod-loader.js'
 import path from 'path'
-
-export type MetaSlugConfig =
-  | string
-  | {
-      prefix: string
-    }
 
 interface PagesOptions {
   // Suffixes that turn a file into a page; the suggested value is `page`. If `page` was provided, the expected file
@@ -15,9 +10,6 @@ interface PagesOptions {
   // File extensions which become pages automatically without needing a specific suffix. For example, if `md` was
   // provided, then a file of the form `blog/example.md` would end up having a slug of `blog/example`
   pageExtensions?: string[]
-
-  // A list of named properties to copy over from a module into it's metadata
-  copyModuleProperties?: string[] | Record<string, string>
 
   // If true, automatically converts parenthesized names into the corresponding parent slug; for example
   // `some/sub/(child)` would be converted to `/some/sub`.
@@ -33,122 +25,102 @@ export class PagesMod implements StaticSiteMod {
   private readonly suffixes: string[]
   private readonly extensions: Set<string>
   private readonly enableIndexSlugs: boolean
-  private readonly moduleProperties: Array<[from: string, to: string]>
 
   constructor(options: PagesOptions) {
     this.suffixes = options.pageSuffixes.map((it) => `.${it}`)
     this.extensions = new Set(options.pageExtensions?.map((it) => `.${it}`) ?? [])
     this.enableIndexSlugs = options.enableIndexSlugs
-
-    const properties = options.copyModuleProperties ?? []
-
-    this.moduleProperties = Array.isArray(properties) ? properties.map((it) => [it, it]) : Object.entries(properties)
   }
 
   public initialize(loader: ModInitializer): void {
-    loader.generatePageSlug.add((entry) => this.computeDefaultSlug(entry))
-    loader.updatePageSlug.add((...args) => this.updateSlug(...args))
+    loader.determineContentType.add((entry) => this.determineContentType(entry))
+    loader.postprocess.add((entry) => this.cleanSlug(entry))
 
     if (this.enableIndexSlugs) {
-      loader.updatePageSlug.add((...args) => this.updateIndexSlug(...args), ModNamedOrders.post)
-    }
-
-    if (this.moduleProperties) {
-      loader.modifyPage.add((...args) => this.copyProperties(...args))
+      loader.preprocess.add((entry) => this.updateIndexSlug(entry))
     }
   }
 
-  private computeDefaultSlug(entry: PageModule): string | null {
+  // If the module has a matching file type or a matching file suffix, it's a page
+  private determineContentType(entry: PageModule): ContentType {
     const parsed = path.parse(entry.contentPath)
 
     if (this.extensions.has(parsed.ext)) {
-      // remove the extension
-      return path.format({
-        name: parsed.name,
-        root: parsed.root,
-        dir: parsed.dir,
-      })
+      return 'page'
     }
 
     for (const suffix of this.suffixes) {
-      if (!parsed.name.endsWith(suffix)) {
-        continue
+      if (parsed.name.endsWith(suffix)) {
+        return 'page'
       }
-
-      // remove the suffix
-      const name = parsed.name.substring(0, parsed.name.length - suffix.length)
-
-      return path.format({
-        name: name,
-        root: parsed.root,
-        dir: parsed.dir,
-      })
     }
 
     return null
   }
 
-  private updateSlug(entry: PageModule, slug: string) {
-    const property = entry.metadata.describe<MetaSlugConfig>('slug')
-    if (!property) {
-      return slug
+  // If the entry has a slug that has one of our suffixes (and the original content path did to) go
+  // ahead and remove the slug suffixes
+  private cleanSlug(entry: PageModule): void {
+    const currentSlug = entry.contentData.get('slug')?.toString()
+    if (!currentSlug) {
+      return
     }
 
-    // slug is a string; return it directly
-    const value = property.value
-    if (typeof value === 'string') {
-      entry.pluginMetadata['readonly-slug'] = true
-      return value
+    const newSlug = this.determineNewSlug(entry, currentSlug)
+    if (newSlug) {
+      entry.contentData.set('slug', newSlug)
     }
-
-    // slug is an object with a prefix specified
-    if (value && typeof value === 'object' && 'prefix' in value && typeof value.prefix === 'string') {
-      const parsed = path.parse(slug)
-      return path.format({
-        name: parsed.name,
-        root: parsed.root,
-        dir: value.prefix,
-      })
-    }
-
-    return slug
   }
 
-  private updateIndexSlug(entry: PageModule, currentSlug: string) {
-    if (entry.pluginMetadata['readonly-slug'] === true) {
-      return currentSlug
+  private determineNewSlug(entry: PageModule, currentSlug: string) {
+    const parsed = path.parse(entry.contentPath)
+
+    // if it's a page that doesn't have any of our suffixes, then bail out
+    if (this.extensions.has(parsed.ext)) {
+      return
     }
 
+    const parsedSlug = path.parse(currentSlug)
+
+    for (const suffix of this.suffixes) {
+      if (parsed.name.endsWith(suffix) && parsedSlug.name.endsWith(suffix)) {
+        // remove the suffix
+        const name = parsedSlug.name.substring(0, parsedSlug.name.length - suffix.length)
+        return path.format({
+          name: name,
+          root: parsedSlug.root,
+          dir: parsedSlug.dir,
+        })
+      }
+    }
+
+    return
+  }
+
+  private updateIndexSlug(entry: PageModule) {
+    const currentSlug = entry.contentData.get('slug') as string
     const parsed = path.parse(currentSlug)
+
     let { name, dir } = parsed
 
-    if (name.startsWith('(') && name.endsWith(')')) {
-      name = dir
-      dir = path.dirname(dir)
-
-      // we have to special case the web root to be index
-      if (dir == '.' && name == '') {
-        name = 'index'
-      }
-
-      return path.format({
-        name: name,
-        root: parsed.root,
-        dir: dir,
-      })
-    } else {
-      return currentSlug
+    if (!(name.startsWith('(') && name.endsWith(')'))) {
+      return
     }
-  }
 
-  private copyProperties(content: PageModule) {
-    for (const entry of this.moduleProperties) {
-      const [from, to] = Array.isArray(entry) ? entry : [entry, entry]
+    name = dir
+    dir = path.dirname(dir)
 
-      if (from in content.module) {
-        const value = content.module[from]
-        content.metadata.add(to, value)
-      }
+    // we have to special case the web root to be index
+    if (dir == '.' && name == '') {
+      name = 'index'
     }
+
+    const newSlug = path.format({
+      name: name,
+      root: parsed.root,
+      dir: dir,
+    })
+
+    entry.contentData.set('slug', newSlug)
   }
 }
