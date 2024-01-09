@@ -33,6 +33,9 @@ export interface StaticSiteGeneratorPluginOptions {
   readonly configFilenames: string[]
   readonly styleExtensions: string[]
 
+  // whether to include the default mods as part of the OutOfBoxDefaultsMod; defaults to true
+  readonly defaultMods?: boolean
+
   readonly mods?: StaticSiteMod[]
 }
 

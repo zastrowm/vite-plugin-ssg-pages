@@ -10,10 +10,12 @@ export type ContentType = 'page' | null
 export class ModLoader implements ModInitializer {
   public renderers = new Map<string, Renderer>()
 
-  constructor(mods: StaticSiteMod[]) {
-    const ordered = toSortedArray(mods ?? [], (it) => it.order ?? ModNamedOrders.normal)
+  public readonly mods: StaticSiteMod[]
 
-    ordered.forEach((mod) => {
+  constructor(mods: StaticSiteMod[]) {
+    this.mods = toSortedArray(mods ?? [], (it) => it.order ?? ModNamedOrders.normal)
+
+    this.mods.forEach((mod) => {
       mod.initialize(this)
     })
   }

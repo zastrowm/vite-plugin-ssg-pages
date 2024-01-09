@@ -14,6 +14,9 @@ export type { PageModule } from './static-site-mod.js'
 export { PluginEntry } from './plugin-entry.js'
 export { ModNamedOrders } from './static-site-mod.js'
 
+// Mod0
+export { OutOfBoxDefaultsMod } from './mods/out-of-box-defaults-mod.js'
+
 // Mod1
 export { PagesMod } from './mods/pages/pages-mod.js'
 

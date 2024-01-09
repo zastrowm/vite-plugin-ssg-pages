@@ -2,7 +2,7 @@ import { ModInitializer, PageModule, StaticSiteMod } from '../static-site-mod.js
 
 export interface ModuleDataModOptions {
   // A list of named properties to copy over from a module into it's metadata
-  copyModuleProperties?: string[] | Record<string, string>
+  copyModuleProperties: string[] | Record<string, string>
 }
 
 /**
@@ -10,12 +10,10 @@ export interface ModuleDataModOptions {
  */
 export class ModuleDataMod implements StaticSiteMod {
   public readonly name = 'default.module-data'
-  private readonly moduleProperties: Array<[from: string, to: string]>
+  private readonly moduleProperties: string[] | Record<string, string>
 
   constructor(options: ModuleDataModOptions) {
-    this.moduleProperties = Array.isArray(options.copyModuleProperties)
-      ? options.copyModuleProperties.map((it) => [it, it])
-      : Object.entries(options.copyModuleProperties ?? {})
+    this.moduleProperties = options.copyModuleProperties ?? []
   }
 
   public initialize(loader: ModInitializer): void {
@@ -24,13 +22,24 @@ export class ModuleDataMod implements StaticSiteMod {
 
   // copy the specified properties from the module to the metadata
   private copyProperties(content: PageModule) {
-    for (const entry of this.moduleProperties) {
-      const [from, to] = Array.isArray(entry) ? entry : [entry, entry]
+    if (Array.isArray(this.moduleProperties)) {
+      // if it's an array, then it's an array of properties to copy;
+      // example for "X.Y.Z", then we try to copy "X.Y.Z" to property "Z"
+      this.moduleProperties.forEach((from) => {
+        this.copyProperty(content, from, null)
+      })
+    } else {
+      // if it's an object, then each property-value pair represents the "from" and "to" properties
+      Object.entries(this.moduleProperties).forEach(([from, to]) => {
+        this.copyProperty(content, from, to)
+      })
+    }
+  }
 
-      const value = this.getModuleProperty(content, from)
-      if (value) {
-        content.metadata.add(to, value)
-      }
+  private copyProperty(content: PageModule, from: string, to: string | null) {
+    const nameAndValue = this.getModuleProperty(content, from)
+    if (nameAndValue) {
+      content.metadata.add(to ?? nameAndValue.name, nameAndValue.value)
     }
   }
 
@@ -47,6 +56,6 @@ export class ModuleDataMod implements StaticSiteMod {
       }
     }
 
-    return value
+    return { name: parts[parts.length - 1], value }
   }
 }

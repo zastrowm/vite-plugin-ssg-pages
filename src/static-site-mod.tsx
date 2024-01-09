@@ -28,6 +28,9 @@ export interface PageModule {
 }
 
 export interface ModInitializer {
+  // All the mods added to the system
+  mods: StaticSiteMod[]
+
   addRenderer(name: string, renderer: Renderer): void
 
   // Determines the type of content a module represents
