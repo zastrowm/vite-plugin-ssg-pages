@@ -40,7 +40,7 @@ export class ContentProvider {
       }
 
       const type = this.getContentType(entry)
-      if (type == null) {
+      if (type == null || type == 'ignored') {
         continue
       }
 
@@ -56,6 +56,7 @@ export class ContentProvider {
 
       this.invokeAll(entry, this.modLoader.contributeData)
       this.invokeAll(entry, this.modLoader.preprocess)
+      this.invokeAll(entry, this.modLoader.slugNormalization)
 
       const renderer = entry.metadata.get('renderer')?.toString()
       if (!renderer) {

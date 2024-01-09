@@ -1,4 +1,4 @@
-import { ModInitializer, PageModule, StaticSiteMod } from '../../index.js'
+import { ModInitializer, ModNamedOrders, PageModule, StaticSiteMod } from '../../index.js'
 import { ContentType } from '../../mod/mod-loader.js'
 import path from 'path'
 
@@ -34,10 +34,10 @@ export class PagesMod implements StaticSiteMod {
 
   public initialize(loader: ModInitializer): void {
     loader.determineContentType.add((entry) => this.determineContentType(entry))
-    loader.postprocess.add((entry) => this.cleanSlug(entry))
+    loader.slugNormalization.add((entry) => this.cleanSlug(entry), ModNamedOrders.first)
 
     if (this.enableIndexSlugs) {
-      loader.preprocess.add((entry) => this.updateIndexSlug(entry))
+      loader.slugNormalization.add((entry) => this.updateIndexSlug(entry), ModNamedOrders.last)
     }
   }
 
@@ -61,6 +61,11 @@ export class PagesMod implements StaticSiteMod {
   // If the entry has a slug that has one of our suffixes (and the original content path did to) go
   // ahead and remove the slug suffixes
   private cleanSlug(entry: PageModule): void {
+    // if they modified the slug name, it's up to them to remove any ()
+    if (entry.contentData.get('slug.name.modified') === true) {
+      return
+    }
+
     const currentSlug = entry.contentData.get('slug')?.toString()
     if (!currentSlug) {
       return
@@ -98,6 +103,11 @@ export class PagesMod implements StaticSiteMod {
   }
 
   private updateIndexSlug(entry: PageModule) {
+    // if they modified the slug name, it's up to them to remove any ()
+    if (entry.contentData.get('slug.name.modified') === true) {
+      return
+    }
+
     const currentSlug = entry.contentData.get('slug') as string
     const parsed = path.parse(currentSlug)
 

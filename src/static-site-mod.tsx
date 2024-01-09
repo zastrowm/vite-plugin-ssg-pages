@@ -40,9 +40,12 @@ export interface ModInitializer {
   // or add data
   readonly contributeData: HookCallback<(module: PageModule) => void>
 
-  // Invoked before the renderer is determined; useful for contributing additional data to
+  // Invoked before the renderer & slugs are updated; useful for contributing additional data to
   // the content before rendering
   readonly preprocess: HookCallback<(module: PageModule) => void>
+
+  // Invoked when slugs should be updated & before the renderer has been determined
+  readonly slugNormalization: HookCallback<(module: PageModule) => void>
 
   // Invoked after the renderer has been determined & after preprocessing
   readonly postprocess: HookCallback<(module: PageModule) => void>

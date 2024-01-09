@@ -2,7 +2,7 @@ import { HookCallback, ModInitializer, ModNamedOrders, PageModule, StaticSiteMod
 import { Renderer } from '../renderer.js'
 import { toSortedArray } from '../util/array.js'
 
-export type ContentType = 'page' | null
+export type ContentType = 'page' | 'ignored' | null
 
 /**
  * Tracks the mods used for the current environment + helper methods for retrieving data from mods
@@ -23,6 +23,7 @@ export class ModLoader implements ModInitializer {
   public readonly determineContentType = new CallbackList<(module: PageModule) => ContentType>()
   public readonly contributeData = new CallbackList<(module: PageModule) => void>()
   public readonly preprocess = new CallbackList<(module: PageModule) => void>()
+  public readonly slugNormalization = new CallbackList<(module: PageModule) => void>()
   public readonly postprocess = new CallbackList<(module: PageModule) => void>()
 
   public addRenderer(name: string, renderer: Renderer): void {

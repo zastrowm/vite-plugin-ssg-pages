@@ -19,6 +19,12 @@ export type MetaSlugConfig =
       name: StringOrFactory
     }
 
+enum SlugModificationType {
+  slug,
+  name,
+  path,
+}
+
 /**
  * Allows customizing the slug used for a specific page. By providing an object or value for
  * the `slug` property, pages can customize the slug that is used for a page.
@@ -30,12 +36,18 @@ export type MetaSlugConfig =
  * - If `slug.name` is provided, the provided value is appended to the prefix/directory portion
  *   value; for instance if the default slug is `parent/child/name` and `slug.name` is `test`,
  *   then the `slug` becomes `parent/child/test`
+ *
+ * This mod may set the following contentProperties:
+ *
+ *  - `slug`: the value of the slug after modification
+ *  - `slug.name.modified`: true if the slug name has been modified or customized by metadata
+ *  - `slug.path.modified`: true if the slug path has been modified or customized by metadata
  */
 export class CustomizedSlugMod implements StaticSiteMod {
   public readonly name = 'default.slug-specifier'
 
   public initialize(loader: ModInitializer): void {
-    loader.postprocess.add((entry) => this.useSlugFromMetadata(entry), ModNamedOrders.post)
+    loader.slugNormalization.add((entry) => this.useSlugFromMetadata(entry), ModNamedOrders.pre)
   }
 
   private useSlugFromMetadata(entry: PageModule): void {
@@ -46,20 +58,34 @@ export class CustomizedSlugMod implements StaticSiteMod {
     // get the slug, as-is
     let slug = entry.contentData.get('slug') as string
 
-    const updateSlug = (newSlug: string) => {
-      // keep it updated so that if callers access the current value it will be up to date
-      entry.contentData.set('slug', newSlug)
-      return newSlug
-    }
-
     for (const property of slugProperties) {
-      switch (property.name) {
-        case 'slug': {
+      const updateSlug = (newSlug: string) => {
+        // keep it updated so that if callers access the current value it will be up to date
+        entry.contentData.set('slug', newSlug)
+
+        switch (property.type) {
+          case SlugModificationType.slug:
+            entry.contentData.set('slug.name.modified', true)
+            entry.contentData.set('slug.path.modified', true)
+            break
+          case SlugModificationType.name:
+            entry.contentData.set('slug.name.modified', true)
+            break
+          case SlugModificationType.path:
+            entry.contentData.set('slug.path.modified', true)
+            break
+        }
+
+        return newSlug
+      }
+
+      switch (property.type) {
+        case SlugModificationType.slug: {
           const newSlug = property.value(entry)
           slug = updateSlug(newSlug)
           break
         }
-        case 'slug.path': {
+        case SlugModificationType.path: {
           const parsed = path.parse(slug)
           const pathValue = property.value(entry)
           slug = updateSlug(
@@ -71,7 +97,7 @@ export class CustomizedSlugMod implements StaticSiteMod {
           )
           break
         }
-        case 'slug.name': {
+        case SlugModificationType.name: {
           const parsed = path.parse(slug)
           const nameValue = property.value(entry)
           slug = updateSlug(
@@ -92,16 +118,16 @@ export class CustomizedSlugMod implements StaticSiteMod {
    * that, otherwise return the "slug.path" or "slug.name" part as a StringOrFactory
    */
   private convert(slugProperty: DescribedProperty<MetaSlugConfig>): null | {
-    name: 'slug' | 'slug.path' | 'slug.name'
+    type: SlugModificationType
     value: SlugPartFactory
     priority: number
   } {
     const value = slugProperty.value
 
-    const createProperty = (name: 'slug' | 'slug.path' | 'slug.name', value: StringOrFactory) => {
+    const createProperty = (type: SlugModificationType, value: StringOrFactory) => {
       {
         return {
-          name: name,
+          type: type,
           value: is.string(value) ? () => value : value,
           priority: slugProperty.priority,
         }
@@ -109,16 +135,16 @@ export class CustomizedSlugMod implements StaticSiteMod {
     }
 
     if (is.string(value) || is.function<SlugPartFactory>(value)) {
-      return createProperty('slug', value)
+      return createProperty(SlugModificationType.slug, value)
     }
 
     if (is.object(value)) {
       if ('path' in value && (is.string(value['path']) || is.function(value['path']))) {
-        return createProperty('slug.path', value['path'])
+        return createProperty(SlugModificationType.path, value['path'])
       }
 
       if ('name' in value && (is.string(value['name']) || is.function(value['name']))) {
-        return createProperty('slug.path', value['name'])
+        return createProperty(SlugModificationType.name, value['name'])
       }
     }
 
