@@ -80,7 +80,7 @@ export class PagesMod implements StaticSiteMod {
   private determineNewSlug(entry: PageModule, currentSlug: string) {
     const parsed = path.parse(entry.contentPath)
 
-    // if it's a page that doesn't have any of our suffixes, then bail out
+    // if it's a page that does have any of our suffixes, then bail out
     if (this.extensions.has(parsed.ext)) {
       return
     }
@@ -88,9 +88,14 @@ export class PagesMod implements StaticSiteMod {
     const parsedSlug = path.parse(currentSlug)
 
     for (const suffix of this.suffixes) {
-      if (parsed.name.endsWith(suffix) && parsedSlug.name.endsWith(suffix)) {
+      const slugPathName = parsedSlug.name + parsedSlug.ext
+
+      if (
+        parsed.name.endsWith(suffix) && // here we don't want the extension
+        slugPathName.endsWith(suffix) // at this point, the extension should already be stripped
+      ) {
         // remove the suffix
-        const name = parsedSlug.name.substring(0, parsedSlug.name.length - suffix.length)
+        const name = slugPathName.substring(0, slugPathName.length - suffix.length)
         return path.format({
           name: name,
           root: parsedSlug.root,
