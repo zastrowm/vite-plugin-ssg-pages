@@ -1,6 +1,7 @@
 import { HookCallback, ModInitializer, ModNamedOrders, PageModule, StaticSiteMod } from '../static-site-mod.js'
 import { Renderer } from '../renderer.js'
-import { toSortedArray } from '../util/array.js'
+import { toSortedArray } from '@kreativ/core/array.js'
+import { is } from '@kreativ/core/typing/is.js'
 
 export type ContentType = 'page' | 'ignored' | null
 
@@ -62,5 +63,9 @@ export class CallbackList<T extends Function> implements HookCallback<T> {
   public add(item: T, order: number = ModNamedOrders.normal) {
     this.items.push({ value: item, order: order })
     this.didChange = true
+  }
+
+  public static isCallbackList(item: unknown): item is CallbackList<any> {
+    return is.object(item) && 'didChange' in item && 'add' in item
   }
 }

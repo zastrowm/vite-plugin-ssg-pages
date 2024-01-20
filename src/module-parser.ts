@@ -1,11 +1,11 @@
 import { normalizePath } from 'vite'
 import path from 'path'
-import { escapeRegex } from './util/regex.js'
 import { CachingPageDataApi } from './page-data-api.js'
 import { ModSettings } from './mod-settings.js'
 import { ContentData, PageModule } from './static-site-mod.js'
 import { DefaultPageMetadataConfig } from './pages/index.js'
 import { Json } from './renderer.js'
+import { escapeRegex } from '@kreativ/core/regex.js'
 
 export type ModuleMetadata = Record<string, unknown>
 type CustomMetadata = {

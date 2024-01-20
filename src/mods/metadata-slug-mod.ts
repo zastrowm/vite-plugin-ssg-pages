@@ -1,6 +1,6 @@
 import { ModInitializer, ModNamedOrders, PageModule, StaticSiteMod } from '../static-site-mod.js'
+import { is } from '@kreativ/core/typing/is.js'
 import path from 'path'
-import { is } from '../util/is.js'
 import { DescribedProperty } from '../module-parser.js'
 
 export type SlugPartFactory = (entry: PageModule) => string

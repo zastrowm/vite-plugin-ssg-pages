@@ -196,6 +196,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kreativ/core@link:../kreativ/core/dist/::locator=vite-plugin-ssg-pages%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@kreativ/core@link:../kreativ/core/dist/::locator=vite-plugin-ssg-pages%40workspace%3A."
+  languageName: node
+  linkType: soft
+
 "@npmcli/agent@npm:^2.0.0":
   version: 2.2.0
   resolution: "@npmcli/agent@npm:2.2.0"
@@ -1768,6 +1774,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "vite-plugin-ssg-pages@workspace:."
   dependencies:
+    "@kreativ/core": "link:../kreativ/core/dist/"
     "@types/fs-extra": ^11.0.4
     "@types/node": 18
     fs-extra: ^11.2.0

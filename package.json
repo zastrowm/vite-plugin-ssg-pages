@@ -31,6 +31,7 @@
     "bracketSpacing": true
   },
   "devDependencies": {
+    "@kreativ/core": "link:../kreativ/core/dist/",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "18",
     "preact": "^10.19.3",
